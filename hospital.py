@@ -46,14 +46,14 @@ def get_beds_status() :
     hospital_id = args['hospital_id']
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    patient_id = decoded['nhid']
+    # patient_id = decoded['nhid']
     # FETCH DATA FROM THE HOSPITAL DATABSE
-    query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
-    cur.execute(query)
+    query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = %s AND available = %d'
+    cur.execute(query,(hospital_id,1))
     result = cur.fetchall()
     available = result[0][0]
-    query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {0}'
-    cur.execute(query)
+    query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = %s AND available = %d'
+    cur.execute(query,(hospital_id,0))
     result = cur.fetchall()
     unavailable = result[0][0]
     data = {'occupied' : unavailable,'unoccupied' : available}
@@ -73,28 +73,28 @@ def change_hospital_bed_status() :
     # patient_id = decoded['nhid']
     if req_type == 'book' : 
         # CHECK IF THERE IS AN AVAILABILITY OF BEDS
-        query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
-        cur.execute(query)
+        query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = %s AND available = %d'
+        cur.execute(query,(hospital_id,1))
         result = cur.fetchone()
         if result[0] > 0 :
-            query = f'SELECT * FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
-            cur.execute(query)
+            query = f'SELECT * FROM bedsdb where hospital_id = %s AND available = %d'
+            cur.execute(query,(hospital_id,1))
             record = cur.fetchone()
             bedid = result[0][0]
-            query = f'UPDATE bedsdb SET availability = 0 WHERE bed_id = {bedid}'
-            cur.execute(query)   
+            query = f'UPDATE bedsdb SET availability = 0 WHERE bed_id = %s'
+            cur.execute(query,(bedid))   
             return 'Bed Booked'
         else :
         # DB CODE TO UNBOOK BEDS
             return 'Beds Full'
     
     else :    
-        query = f'SELECT * FROM bedsdb where hospital_id = "{hospital_id}" AND available = {0}'
-        cur.execute(query)
+        query = f'SELECT * FROM bedsdb where hospital_id = %s AND available = %d'
+        cur.execute(query,(hospital_id,0))
         record = cur.fetchone()
         bedid = result[0][0]
-        query = f'UPDATE bedsdb SET availability = 1 WHERE bed_id = {bedid}'
-        cur.execute(query)   
+        query = f'UPDATE bedsdb SET availability = 1 WHERE bed_id = %s'
+        cur.execute(query,(bedid))   
         return 'Bed Unbooked'
 
 
@@ -107,10 +107,8 @@ def get_doctor_bills() :
     doc_id = args['doc_id']
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    # patient_id = decoded['nhid']
-    # Fetch data from the Database
-    query = f'SELECT fees FROM doctor_fees WHERE doc_id = "{doc_id}" AND hospital_id = "{hospital_id}" '
-    cur.execute(query)
+    query = f'SELECT fees FROM doctor_fees WHERE doc_id = %s AND hospital_id = %s '
+    cur.execute(query,(doc_id,hospital_id))
     result = cur.fetchall()
     fee = result[0][0]
     return fee
@@ -127,8 +125,8 @@ def get_lab_bills() :
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     # Fetch data from the Database
-    query = f'SELECT fees FROM lab_fees WHERE lab_id = "{lab_id}" AND test_id = "{test_id}" '
-    cur.execute(query)
+    query = f'SELECT fees FROM lab_fees WHERE lab_id = %s AND test_id = %s '
+    cur.execute(query,(lab_id,test_id))
     result = cur.fetchall()
     fee = result[0][0]
     return fee
@@ -145,8 +143,8 @@ def get_doctors() :
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     hospital_id = args['hospital_id']
-    query = f'SELECT doc_id, doctor_name,specialisation from doctorsdb WHERE hospital_id = "{hospital_id}"'
-    cur.execute(query)
+    query = f'SELECT doc_id, doctor_name,specialisation from doctorsdb WHERE hospital_id = %s'
+    cur.execute(query,(hospital_id))
     record = cur.fetchall()
     return record
 
@@ -161,8 +159,8 @@ def add_doctor() :
     doctor_name = args['doctor_name']
     years_exp = args['years_exp']
     speciality = args['speciality']
-    query = f'INSERT INTO doctorsdb (doctor_name,specialisation,hospital_id,years_exp) VALUES ("{doctor_name}","{speciality}","{hospital_id}",{years_exp})'
-    cur.execute(query)
+    query = f'INSERT INTO doctorsdb (doctor_name,specialisation,hospital_id,years_exp) VALUES (%s, %s,%s, %d)'
+    cur.execute(query,(doctor_name,speciality,hospital_id,years_exp))
 
 
 # DONE
@@ -174,8 +172,8 @@ def remove_doctor() :
     # jwt = decoded['nhid']
     doctor_id = args['doctor_id']
     # remove the doctor from the list
-    query = f'DELETE FROM doctorsdb WHERE doc_id = "{doctor_id}"'
-    cur.execute(query)
+    query = f'DELETE FROM doctorsdb WHERE doc_id = %s'
+    cur.execute(query,(doctor_id))
 
 
 
