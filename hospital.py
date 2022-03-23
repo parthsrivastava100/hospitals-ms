@@ -2,9 +2,12 @@ from pydoc import doc
 import requests
 import json
 import sys
+import jwt
 import psycopg2
 from config import config
 from flask import Flask
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.asymmetric import  rsa
 
 
 conn = None
@@ -21,13 +24,29 @@ except (Exception, psycopg2.DatabaseError) as error:
 
 app = Flask(__name__)
 
+key = None
+
+
+def get_public_key() :
+    global key
+    r = requests.get('https://b6ba-14-139-38-126.ngrok.io/publicKey')
+    data = r.content
+    key = load_pem_public_key(data)
+
+get_public_key()
+
+if key is None :
+    print('Unable to retireve public key')
+    sys.exit()
+
 # DONE
 @app.route("/get_beds_status",methods=['GET'])
 def get_beds_status() :
     args = requests.args.to_dict()
     hospital_id = args['hospital_id']
-    jwt = args['jwt']
-
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     # FETCH DATA FROM THE HOSPITAL DATABSE
     query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
     cur.execute(query)
@@ -47,11 +66,11 @@ def get_beds_status() :
 def change_hospital_bed_status() :
     args = requests.args.to_dict()
     hospital_id = args['hospital_id']
-    jwt = args['jwt']
-    nhid = args['nhid']
     req_type = args['type']
     # PERFORM AUTHENTICATION
-
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     if req_type == 'book' : 
         # CHECK IF THERE IS AN AVAILABILITY OF BEDS
         query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
@@ -86,9 +105,9 @@ def get_doctor_bills() :
     args = requests.args.to_dict()
     hospital_id = args['hospital_id']
     doc_id = args['doc_id']
-    jwt = args['jwt']
-    ## PERFORM AUTHENTICATION
-
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     # Fetch data from the Database
     query = f'SELECT fees FROM doctor_fees WHERE doc_id = "{doc_id}" AND hospital_id = "{hospital_id}" '
     cur.execute(query)
@@ -104,9 +123,9 @@ def get_lab_bills() :
     args = requests.args.to_dict()
     lab_id = args['lab_id']
     test_id = args['test_id']
-    jwt = args['jwt']
-    ## PERFORM AUTHENTICATION
-
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     # Fetch data from the Database
     query = f'SELECT fees FROM lab_fees WHERE lab_id = "{lab_id}" AND test_id = "{test_id}" '
     cur.execute(query)
@@ -122,7 +141,9 @@ def get_lab_bills() :
 @app.route("/doctor",methods=['GET'])
 def get_doctors() :
     args = requests.args.to_dict()
-    jwt = args['jwt']
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     hospital_id = args['hospital_id']
     query = f'SELECT doc_id, doctor_name,specialisation from doctorsdb WHERE hospital_id = "{hospital_id}"'
     cur.execute(query)
@@ -133,7 +154,9 @@ def get_doctors() :
 @app.route("/doctor",methods=['POST'])
 def add_doctor() :
     args = requests.args.to_dict()
-    jwt = args['jwt']
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     hospital_id = args['hospital_id']
     doctor_name = args['doctor_name']
     years_exp = args['years_exp']
@@ -146,10 +169,10 @@ def add_doctor() :
 @app.route("/doctor",methods=['DELETE'])
 def remove_doctor() :
     args = requests.args.to_dict()
-    jwt = args['jwt']
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     doctor_id = args['doctor_id']
-    # PERFORM AUTHENTICATION
-
     # remove the doctor from the list
     query = f'DELETE FROM doctorsdb WHERE doc_id = "{doctor_id}"'
     cur.execute(query)
@@ -161,7 +184,9 @@ def remove_doctor() :
 @app.route("/public-info",methods=['GET'])
 def get_public_info() :
     args = requests.args.to_dict()
-    jwt = args['jwt']
+    encoded = args['encoded']
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    jwt = decoded['nhid']
     nhid = args['nhid']
     params = {'jwt' : jwt,'nhid' : nhid}
     # DB CODE TO RETRIEVE THE GENERAL DATA
