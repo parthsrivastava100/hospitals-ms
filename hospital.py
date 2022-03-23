@@ -46,7 +46,7 @@ def get_beds_status() :
     hospital_id = args['hospital_id']
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    patient_id = decoded['nhid']
     # FETCH DATA FROM THE HOSPITAL DATABSE
     query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
     cur.execute(query)
@@ -70,7 +70,7 @@ def change_hospital_bed_status() :
     # PERFORM AUTHENTICATION
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # patient_id = decoded['nhid']
     if req_type == 'book' : 
         # CHECK IF THERE IS AN AVAILABILITY OF BEDS
         query = f'SELECT COUNT(*) FROM bedsdb where hospital_id = "{hospital_id}" AND available = {1}'
@@ -107,7 +107,7 @@ def get_doctor_bills() :
     doc_id = args['doc_id']
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # patient_id = decoded['nhid']
     # Fetch data from the Database
     query = f'SELECT fees FROM doctor_fees WHERE doc_id = "{doc_id}" AND hospital_id = "{hospital_id}" '
     cur.execute(query)
@@ -125,7 +125,7 @@ def get_lab_bills() :
     test_id = args['test_id']
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # jwt = decoded['nhid']
     # Fetch data from the Database
     query = f'SELECT fees FROM lab_fees WHERE lab_id = "{lab_id}" AND test_id = "{test_id}" '
     cur.execute(query)
@@ -143,7 +143,7 @@ def get_doctors() :
     args = requests.args.to_dict()
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # jwt = decoded['nhid']
     hospital_id = args['hospital_id']
     query = f'SELECT doc_id, doctor_name,specialisation from doctorsdb WHERE hospital_id = "{hospital_id}"'
     cur.execute(query)
@@ -156,7 +156,7 @@ def add_doctor() :
     args = requests.args.to_dict()
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # jwt = decoded['nhid']
     hospital_id = args['hospital_id']
     doctor_name = args['doctor_name']
     years_exp = args['years_exp']
@@ -171,7 +171,7 @@ def remove_doctor() :
     args = requests.args.to_dict()
     encoded = args['encoded']
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
+    # jwt = decoded['nhid']
     doctor_id = args['doctor_id']
     # remove the doctor from the list
     query = f'DELETE FROM doctorsdb WHERE doc_id = "{doctor_id}"'
