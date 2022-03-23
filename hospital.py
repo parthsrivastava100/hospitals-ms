@@ -1,5 +1,6 @@
 from pydoc import doc
 import requests
+import requests
 import json
 import sys
 import jwt
@@ -44,7 +45,7 @@ if key is None :
 def get_beds_status() :
     args = requests.args.to_dict()
     hospital_id = args['hospital_id']
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # patient_id = decoded['nhid']
     # FETCH DATA FROM THE HOSPITAL DATABSE
@@ -68,7 +69,7 @@ def change_hospital_bed_status() :
     hospital_id = args['hospital_id']
     req_type = args['type']
     # PERFORM AUTHENTICATION
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # patient_id = decoded['nhid']
     if req_type == 'book' : 
@@ -105,7 +106,7 @@ def get_doctor_bills() :
     args = requests.args.to_dict()
     hospital_id = args['hospital_id']
     doc_id = args['doc_id']
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     query = f'SELECT fees FROM doctor_fees WHERE doc_id = %s AND hospital_id = %s '
     cur.execute(query,(doc_id,hospital_id))
@@ -121,7 +122,7 @@ def get_lab_bills() :
     args = requests.args.to_dict()
     lab_id = args['lab_id']
     test_id = args['test_id']
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     # Fetch data from the Database
@@ -139,7 +140,7 @@ def get_lab_bills() :
 @app.route("/doctor",methods=['GET'])
 def get_doctors() :
     args = requests.args.to_dict()
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     hospital_id = args['hospital_id']
@@ -152,7 +153,7 @@ def get_doctors() :
 @app.route("/doctor",methods=['POST'])
 def add_doctor() :
     args = requests.args.to_dict()
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     hospital_id = args['hospital_id']
@@ -167,7 +168,7 @@ def add_doctor() :
 @app.route("/doctor",methods=['DELETE'])
 def remove_doctor() :
     args = requests.args.to_dict()
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
     doctor_id = args['doctor_id']
@@ -182,10 +183,9 @@ def remove_doctor() :
 @app.route("/public-info",methods=['GET'])
 def get_public_info() :
     args = requests.args.to_dict()
-    encoded = args['encoded']
+    encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
-    jwt = decoded['nhid']
-    nhid = args['nhid']
+    nhid = decoded['NHID']
     params = {'jwt' : jwt,'nhid' : nhid}
     # DB CODE TO RETRIEVE THE GENERAL DATA
     return
