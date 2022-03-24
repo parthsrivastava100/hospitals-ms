@@ -2,6 +2,8 @@ from pydoc import doc
 import requests
 import requests
 import json
+import os
+from dotenv import load_dotenv
 import sys
 import jwt
 import psycopg2
@@ -26,11 +28,11 @@ except (Exception, psycopg2.DatabaseError) as error:
 app = Flask(__name__)
 
 key = None
-
+load_dotenv()
 
 def get_public_key() :
     global key
-    r = requests.get('https://b6ba-14-139-38-126.ngrok.io/publicKey')
+    r = requests.get(os.environ.get("PUBLIC_KEY_URL"))
     data = r.content
     key = load_pem_public_key(data)
 
@@ -190,7 +192,8 @@ def get_public_info() :
     # DB CODE TO RETRIEVE THE GENERAL DATA
     return
 
-
+if __name__ == '__main__':
+    app.run()
 
 
 
