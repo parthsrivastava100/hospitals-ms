@@ -181,6 +181,26 @@ def remove_doctor() :
 
 
 
+# THIS API RETURNS THE LIST OF DOCTORS CORRESPONDING TO A PARTICULAR HOSPITAL ID AND SPECIALIZATION
+@app.route("/doctor_specialisation",methods=['GET'])
+def remove_doctor() :
+    args = request.get_json()
+    encoded = requests.cookies.get('PatientAuth')
+    decoded = jwt.decode(encoded, key, algorithms=["RS256"])
+    # jwt = decoded['nhid']
+    hospital_id = args['hospital_id']
+    specialisation = args['specialisation']
+    # remove the doctor from the list
+    query = f'SELECT doc_id  from specialization WHERE hospital_id = %s and specialisation = %s'
+    cur.execute(query,(hospital_id,specialisation))
+    record = cur.fetchall()
+    return record
+
+
+
+
+
+
 # THIS WILL CALL THE NHID SERVICE
 @app.route("/public-info",methods=['GET'])
 def get_public_info() :
