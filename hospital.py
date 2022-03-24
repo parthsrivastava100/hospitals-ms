@@ -8,7 +8,7 @@ import sys
 import jwt
 import psycopg2
 from config import config
-from flask import Flask
+from flask import Flask,request
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.asymmetric import  rsa
 
@@ -45,7 +45,7 @@ if key is None :
 # DONE
 @app.route("/get_beds_status",methods=['GET'])
 def get_beds_status() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     hospital_id = args['hospital_id']
     encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
@@ -67,7 +67,7 @@ def get_beds_status() :
 # DONE
 @app.route("/change_status",methods=['POST'])
 def change_hospital_bed_status() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     hospital_id = args['hospital_id']
     req_type = args['type']
     # PERFORM AUTHENTICATION
@@ -105,7 +105,7 @@ def change_hospital_bed_status() :
 # DONE
 @app.route("/get_doctor_bills",methods=['GET'])
 def get_doctor_bills() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     hospital_id = args['hospital_id']
     doc_id = args['doc_id']
     encoded = requests.cookies.get('PatientAuth')
@@ -121,7 +121,7 @@ def get_doctor_bills() :
 @app.route("/get_lab_bills",methods=['GET'])
 def get_lab_bills() :
 
-    args = requests.args.to_dict()
+    args = request.get_json()
     lab_id = args['lab_id']
     test_id = args['test_id']
     encoded = requests.cookies.get('PatientAuth')
@@ -141,7 +141,7 @@ def get_lab_bills() :
 # DONE
 @app.route("/doctor",methods=['GET'])
 def get_doctors() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
@@ -154,7 +154,7 @@ def get_doctors() :
 # DONE
 @app.route("/doctor",methods=['POST'])
 def add_doctor() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
@@ -169,7 +169,7 @@ def add_doctor() :
 # DONE
 @app.route("/doctor",methods=['DELETE'])
 def remove_doctor() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     # jwt = decoded['nhid']
@@ -184,7 +184,7 @@ def remove_doctor() :
 # THIS WILL CALL THE NHID SERVICE
 @app.route("/public-info",methods=['GET'])
 def get_public_info() :
-    args = requests.args.to_dict()
+    args = request.get_json()
     encoded = requests.cookies.get('PatientAuth')
     decoded = jwt.decode(encoded, key, algorithms=["RS256"])
     nhid = decoded['NHID']
